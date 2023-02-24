@@ -19,22 +19,26 @@ const options = {
     ca: fs.readFileSync('/etc/letsencrypt/live/sys32.zarlinosolutions.com/chain.pem', 'utf8')
 };
 
-const httpsAgent = new https.Agent({
-    rejectUnauthorized: false
-});
+// const httpsAgent = new https.Agent({
+//     rejectUnauthorized: false
+// });
+
+const headers = ['Forwarded', 'Proxy-Authorization',
+'X-Forwarded-For', 'Proxy-Authenticate',
+  'X-Requested-With', 'From',
+  'X-Real-Ip', 'Via', 'True-Client-Ip', 'Proxy_Connection'];
+
 
 const server = http.createServer((req, res) => {
   try{
     const url = new URL(req.url, `http://${req.headers.host}`);
 
-    if (BLACKLIST.includes(url.hostname)) {
+    if (inBlacklist(url.hostname)) {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not found.');
     } else {
         const auth = basicAuth.parse(req.headers['proxy-authorization']);
-        if (auth) {
-            console.log(auth);
-        }
+
         if (!auth || !CREDENTIALS.some(cred => cred.username === auth.name && cred.password === auth.pass)) {
             res.writeHead(407, { 'Proxy-Authenticate': 'Basic realm="Proxy Authentication"' });
             res.end('Access denied');
@@ -43,11 +47,11 @@ const server = http.createServer((req, res) => {
             console.log(`\x1b[31m\x1b[1mURL:\x1b[0m \x1b[33m${req.url}\x1b[0m, \x1b[31mUSER: \x1b[32m${auth.name}\x1b[0m`);
 
             const proxy = httpProxy.createProxyServer({ 
-                agent: httpsAgent,
+                // agent: httpsAgent,
                 secure: true,
                 ssl: options,          
                 changeOrigin: true,
-                xfwd: false, // <--- doesnt delete X-Forwarded* headers\
+                xfwd: false, // <--- doesnt delete X-Forwarded* headers
                 autoRewrite: true
             });
 
@@ -57,9 +61,18 @@ const server = http.createServer((req, res) => {
                 res.writeHead(404, { 'Content-Type': 'text/plain' });
                 res.end('Not found.');
             });
+
+            proxy.on("proxyReq", function(proxyReq, req, _, options) {
+                for (let i = 0; i < headers.length; ++i) {
+                    req.removeHeader(headers[i]);
+                    proxyReq.removeHeader(headers[i]);
+                }
+            });
         }
     }
-  } catch(err){}
+  } catch(err){
+    console.log('http.createserver error: ' + err)
+  }
 });
 
 server.listen(PORT, () => {
