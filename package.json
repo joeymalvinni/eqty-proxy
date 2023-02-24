@@ -1,6 +1,26 @@
 {
+  "name": "eqty-proxy",
+  "version": "1.0.0",
+  "description": "Proxy server which blocks content restriction filters for school-issued devices.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index"
+  },
+  "keywords": [
+    "proxy",
+    "unblocker",
+    "nodejs",
+    "school",
+    "restriction",
+    "filters"
+  ],
+  "author": "Joey Malvinni",
+  "license": "Apache-2.0",
   "dependencies": {
     "basic-auth": "^2.0.1",
     "http-proxy": "^1.18.1"
+  },
+  "dev-dependencies": {
+    "random-useragent": "^0.5.0"
   }
 }
