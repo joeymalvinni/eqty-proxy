@@ -1,3 +1,6 @@
+# 10/20/2023 ARCHIVED
+## This was archived due to the creation of [justice](https://github.com/joeymalvinni/justice). 
+
 ![EQTY-Proxy banner](https://raw.githubusercontent.com/joeymalvinni/eqty-proxy/main/imgs/eqty-proxy-banner.png)
 
 # Installation
